@@ -5,7 +5,6 @@ import (
 	"siakad/api/service"
 	"siakad/config"
 	"siakad/utils"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -25,24 +24,16 @@ func Login(c *fiber.Ctx) error {
 
 	user, err := service.AuthenticateUser(req.Email, req.Password)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Kredensial tidak valid"})
+		return utils.ResponseError(c, fiber.StatusUnauthorized, "Kredensial tidak valid")
 	}
 
 	token, err := utils.GenerateToken(user.ID, user.Role)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal menghasilkan Token"})
+		return utils.ResponseError(c, fiber.StatusInternalServerError, "Gagal menghasilkan Token")
 	}
 
 	// 🔐 Set token ke dalam Cookie
-	c.Cookie(&fiber.Cookie{
-		Name:     "token",
-		Value:    token,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HTTPOnly: true,  // ❗ Tidak bisa diakses dari JS
-		Secure:   false, // Aktifkan kalau pakai HTTPS
-		SameSite: "Lax", // Lax/SameSiteNone/Strict sesuai kebutuhan
-		Path:     "/",
-	})
+	utils.SetCookie(c, "token", token, 24*60*60, true)
 
 	return c.JSON(fiber.Map{
 		"message": "Login Berhasil",
@@ -88,15 +79,7 @@ func Register(c *fiber.Ctx) error {
 
 func Logout(c *fiber.Ctx) error {
 	// Hapus token dari cookie
-	c.Cookie(&fiber.Cookie{
-		Name:     "token",
-		Value:    "",
-		Expires:  time.Now().Add(-time.Hour),
-		HTTPOnly: true,
-		Path:     "/",
-	})
+	utils.RevokeCookie(c, "token")
 
-	return c.JSON(fiber.Map{
-		"message": "Logout Berhasil",
-	})
+	return utils.ResponseSuccess(c, fiber.StatusOK, "Logout Berhasil")
 }

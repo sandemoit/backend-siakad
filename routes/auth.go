@@ -8,16 +8,11 @@ import (
 )
 
 func AuthRoute(api fiber.Router) {
-	api.Post("/auth/login", controllers.Login)
-	api.Post("/auth/register", controllers.Register)
 
-	api.Post("/auth/logout", middleware.JWTProtected(), controllers.Logout)
+	// authentication routes
+	api.Post("/auth/login", middleware.GuestOnly(), controllers.Login)
+	api.Post("/auth/register", middleware.GuestOnly(), controllers.Register)
 
-	// penggunaan role
-	// api.Post("/auth/login", middleware.JWTProtected(), middleware.RoleGuard("admin"), controllers.Login)
-
-	// api.Get("/me", middleware.JWTProtected(), func(c *fiber.Ctx) error {
-	// 	user := c.Locals("user")
-	// 	return c.JSON(user)
-	// })
+	api.Use(middleware.JWTProtected())
+	api.Post("/auth/logout", middleware.RoleGuard("ustadz", "admin"), controllers.Logout)
 }
