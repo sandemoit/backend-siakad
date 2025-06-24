@@ -13,7 +13,7 @@ func AuthenticateUser(email, password string) (*models.User, error) {
 		return nil, err
 	}
 
-	if ok := utils.ComparePassword(user.Password, password); !ok {
+	if ok := utils.CheckPassword(user.Password, password); !ok {
 		return nil, errors.New("invalid password")
 	}
 

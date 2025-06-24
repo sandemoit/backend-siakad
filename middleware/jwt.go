@@ -65,7 +65,6 @@ func GuestOnly() fiber.Handler {
 
 func JWTProtected() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Try to get token from cookie
 		tokenString := c.Cookies("token")
 
 		// If not found in cookie, try Authorization header
@@ -80,12 +79,24 @@ func JWTProtected() fiber.Handler {
 			return utils.ResponseError(c, fiber.StatusUnauthorized, "Token tidak ditemukan")
 		}
 
-		// Use the same VerifyToken function from utils
+		// Verifikasi token
 		token, err := utils.VerifyToken(tokenString)
 		if err != nil || !token.Valid {
 			return utils.ResponseError(c, fiber.StatusUnauthorized, "Token tidak valid: "+err.Error())
 		}
 
+		// Cek tipe klaim dan pastikan token belum kadaluarsa
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			return utils.ResponseError(c, fiber.StatusUnauthorized, "Token tidak valid")
+		}
+		if exp, ok := claims["exp"].(float64); ok {
+			if int64(exp) < utils.NowUnix() {
+				return utils.ResponseError(c, fiber.StatusUnauthorized, "Token telah kadaluarsa")
+			}
+		}
+
+		// Simpan token ke context
 		c.Locals("user", token)
 		return c.Next()
 	}

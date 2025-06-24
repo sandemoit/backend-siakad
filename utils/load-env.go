@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"os"
-	"strings"
 	"sync"
 
 	"github.com/gofiber/fiber/v2/log"
@@ -24,21 +22,21 @@ func LoadEnv() {
 	})
 }
 
-func AllowedList() []string {
-	allowedListStr := os.Getenv("APP_ALLOWED_REDIRECT")
-	return strings.Split(allowedListStr, ",")
-}
+// func AllowedList() []string {
+// 	allowedListStr := os.Getenv("APP_ALLOWED_REDIRECT")
+// 	return strings.Split(allowedListStr, ",")
+// }
 
-func IsAllowedRedirect(allowed string) bool {
-	if allowed == "" {
-		return true
-	}
+// func IsAllowedRedirect(allowed string) bool {
+// 	if allowed == "" {
+// 		return true
+// 	}
 
-	allowedList := AllowedList()
-	for _, v := range allowedList {
-		if v == allowed {
-			return true
-		}
-	}
-	return false
-}
+// 	allowedList := AllowedList()
+// 	for _, v := range allowedList {
+// 		if v == allowed {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }

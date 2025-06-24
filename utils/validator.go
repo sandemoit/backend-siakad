@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -38,4 +39,8 @@ func IsValidUUID(uuid string) bool {
 
 func GenerateUID() string {
 	return uuid.New().String()
+}
+
+func NowUnix() int64 {
+	return time.Now().Unix()
 }

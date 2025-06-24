@@ -22,8 +22,11 @@ func RevokeCookie(c *fiber.Ctx, name string) {
 	c.Cookie(&fiber.Cookie{
 		Name:     name,
 		Value:    "",
-		Expires:  time.Now().Add(-time.Hour),
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
 		HTTPOnly: true,
 		Path:     "/",
+		Secure:   false, // Set to true if using HTTPS
+		SameSite: "Lax", // Adjust based on your needs
 	})
 }

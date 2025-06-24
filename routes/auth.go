@@ -8,7 +8,6 @@ import (
 )
 
 func AuthRoute(api fiber.Router) {
-
 	// authentication routes
 	api.Post("/auth/login", middleware.GuestOnly(), controllers.Login)
 	api.Post("/auth/register", middleware.GuestOnly(), controllers.Register)

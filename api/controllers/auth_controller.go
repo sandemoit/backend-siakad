@@ -27,7 +27,7 @@ func Login(c *fiber.Ctx) error {
 		return utils.ResponseError(c, fiber.StatusUnauthorized, "Kredensial tidak valid")
 	}
 
-	token, err := utils.GenerateToken(user.ID, user.Role)
+	token, err := utils.GenerateToken(user.ID, user.Role, user.UUID, user.Email, user.Name)
 	if err != nil {
 		return utils.ResponseError(c, fiber.StatusInternalServerError, "Gagal menghasilkan Token")
 	}
@@ -58,6 +58,7 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	user := models.User{
+		UUID:     utils.GenerateUID(),
 		Email:    req.Email,
 		Password: utils.GeneratePassword(req.Password),
 		Role:     req.Role,

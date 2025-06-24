@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -13,20 +12,20 @@ import (
 // ErrMissingJWTSecret is returned when JWT_SECRET env variable is not set.
 var ErrMissingJWTSecret = fmt.Errorf("JWT_SECRET environment variable is not set")
 
-func GenerateToken(userID uint, role string) (string, error) {
+func GenerateToken(userID uint, role string, uuid string, email string, name string) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		return "", ErrMissingJWTSecret
 	}
 
-	// Add debug logging to verify secret
-	log.Printf("Using JWT secret length: %d", len(secret))
-
 	claims := jwt.MapClaims{
 		"user_id": userID,
+		"uuid":    uuid,
+		"email":   email,
+		"name":    name,
 		"role":    role,
 		"exp":     time.Now().Add(24 * time.Hour).Unix(),
-		"iat":     time.Now().Unix(), // Issued at
+		"iat":     time.Now().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -34,6 +33,7 @@ func GenerateToken(userID uint, role string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return signedToken, nil
 }
 
