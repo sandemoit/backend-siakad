@@ -6,4 +6,5 @@ import (
 
 func PublicRoute(api fiber.Router) {
 	AuthRoute(api)
+	SantriRoute(api)
 }

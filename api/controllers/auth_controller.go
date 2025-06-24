@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"siakad/api/dto"
 	"siakad/api/models"
 	"siakad/api/service"
 	"siakad/config"
@@ -9,15 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type AuthRequest struct {
-	Name     string `json:"name,omitempty"` // Optional, can be used for registration
-	Role     string `json:"role,omitempty"` // Optional, can be used for registration
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 func Login(c *fiber.Ctx) error {
-	var req AuthRequest
+	var req dto.AuthRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Permintaan tidak valid"})
 	}
@@ -27,12 +21,11 @@ func Login(c *fiber.Ctx) error {
 		return utils.ResponseError(c, fiber.StatusUnauthorized, "Kredensial tidak valid")
 	}
 
-	token, err := utils.GenerateToken(user.ID, user.Role, user.UUID, user.Email, user.Name)
+	token, err := utils.GenerateToken(user)
 	if err != nil {
 		return utils.ResponseError(c, fiber.StatusInternalServerError, "Gagal menghasilkan Token")
 	}
 
-	// 🔐 Set token ke dalam Cookie
 	utils.SetCookie(c, "token", token, 24*60*60, true)
 
 	return c.JSON(fiber.Map{
@@ -47,7 +40,7 @@ func Login(c *fiber.Ctx) error {
 }
 
 func Register(c *fiber.Ctx) error {
-	var req AuthRequest
+	var req dto.AuthRequest
 	if err := c.BodyParser(&req); err != nil {
 		return utils.ResponseError(c, fiber.StatusBadRequest, err.Error())
 	}

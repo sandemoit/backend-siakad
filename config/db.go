@@ -27,7 +27,7 @@ func InitDB() *gorm.DB {
 		utils.LogError(err)
 	}
 
-	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.User{}, &models.Santri{}, &models.Sekolah{})
 
 	DB = db
 

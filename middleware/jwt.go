@@ -1,46 +1,44 @@
 package middleware
 
 import (
-	"fmt"
+	"os"
 	"siakad/utils"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func RoleGuard(allowedRoles ...string) fiber.Handler {
+func JWTProtected() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userToken, ok := c.Locals("user").(*jwt.Token)
-		if !ok || userToken == nil {
-			return utils.ResponseError(c, fiber.StatusUnauthorized, "Tidak sah - token tidak valid atau hilang")
-		}
-
-		claims, ok := userToken.Claims.(jwt.MapClaims)
-		if !ok {
-			return utils.ResponseError(c, fiber.StatusUnauthorized, "Tidak sah - klaim tidak valid")
-		}
-
-		roleVal, ok := claims["role"]
-		if !ok {
-			return utils.ResponseError(c, fiber.StatusForbidden, "Tidak sah - peran tidak ditemukan di token")
-		}
-
-		role, ok := roleVal.(string)
-		if !ok {
-			if f, ok := roleVal.(float64); ok {
-				role = fmt.Sprintf("%.0f", f)
-			} else {
-				return utils.ResponseError(c, fiber.StatusForbidden, "Tidak sah - tipe peran tidak valid")
+		tokenStr := c.Cookies("token")
+		if tokenStr == "" {
+			authHeader := c.Get("Authorization")
+			if authHeader != "" {
+				tokenStr = authHeader
 			}
 		}
 
-		for _, r := range allowedRoles {
-			if r == role {
-				return c.Next()
+		if tokenStr == "" {
+			return utils.ResponseError(c, fiber.StatusUnauthorized, "Token tidak ditemukan")
+		}
+
+		token, err := utils.VerifyToken(tokenStr)
+		if err != nil || token == nil || !token.Valid {
+			return utils.ResponseError(c, fiber.StatusUnauthorized, "Token tidak valid: "+err.Error())
+		}
+
+		// Optional: Check expired (karena Parse sudah otomatis cek exp juga)
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			if exp, ok := claims["exp"].(float64); ok {
+				if int64(exp) < time.Now().Unix() {
+					return utils.ResponseError(c, fiber.StatusUnauthorized, "Token telah kadaluarsa")
+				}
 			}
 		}
 
-		return utils.ResponseError(c, fiber.StatusForbidden, "Tidak sah - peran tidak valid")
+		c.Locals("user", token)
+		return c.Next()
 	}
 }
 
@@ -48,56 +46,49 @@ func GuestOnly() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tokenStr := c.Cookies("token")
 		if tokenStr == "" {
-			return c.Next() // ✅ Tidak ada token → boleh lanjut (guest)
+			return c.Next()
 		}
 
-		token, err := utils.VerifyToken(tokenStr)
-		if err != nil || !token.Valid {
-			return c.Next() // ✅ Token rusak / invalid → tetap dianggap guest
-		}
-
-		// ❌ Token valid → berarti user sudah login
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": "You are already authenticated",
+		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
+
+		if err != nil || !token.Valid {
+			return c.Next()
+		}
+
+		return utils.ResponseError(c, fiber.StatusForbidden, "Anda sudah login")
 	}
 }
 
-func JWTProtected() fiber.Handler {
+func RoleGuard(allowedRoles ...string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tokenString := c.Cookies("token")
-
-		// If not found in cookie, try Authorization header
-		if tokenString == "" {
-			authHeader := c.Get("Authorization")
-			if authHeader != "" {
-				tokenString = authHeader
-			}
-		}
-
-		if tokenString == "" {
-			return utils.ResponseError(c, fiber.StatusUnauthorized, "Token tidak ditemukan")
-		}
-
-		// Verifikasi token
-		token, err := utils.VerifyToken(tokenString)
-		if err != nil || !token.Valid {
-			return utils.ResponseError(c, fiber.StatusUnauthorized, "Token tidak valid: "+err.Error())
-		}
-
-		// Cek tipe klaim dan pastikan token belum kadaluarsa
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok || !token.Valid {
+		userToken, ok := c.Locals("user").(*jwt.Token)
+		if !ok || userToken == nil {
 			return utils.ResponseError(c, fiber.StatusUnauthorized, "Token tidak valid")
 		}
-		if exp, ok := claims["exp"].(float64); ok {
-			if int64(exp) < utils.NowUnix() {
-				return utils.ResponseError(c, fiber.StatusUnauthorized, "Token telah kadaluarsa")
+
+		claims, ok := userToken.Claims.(jwt.MapClaims)
+		if !ok {
+			return utils.ResponseError(c, fiber.StatusUnauthorized, "Klaim token tidak valid")
+		}
+
+		roleVal, ok := claims["role"]
+		if !ok {
+			return utils.ResponseError(c, fiber.StatusForbidden, "Peran tidak ditemukan")
+		}
+
+		role, ok := roleVal.(string)
+		if !ok {
+			return utils.ResponseError(c, fiber.StatusForbidden, "Tipe peran tidak valid")
+		}
+
+		for _, r := range allowedRoles {
+			if role == r {
+				return c.Next()
 			}
 		}
 
-		// Simpan token ke context
-		c.Locals("user", token)
-		return c.Next()
+		return utils.ResponseError(c, fiber.StatusForbidden, "Akses ditolak untuk peran "+role)
 	}
 }

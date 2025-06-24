@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"os"
+	"siakad/api/models"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,20 +13,21 @@ import (
 // ErrMissingJWTSecret is returned when JWT_SECRET env variable is not set.
 var ErrMissingJWTSecret = fmt.Errorf("JWT_SECRET environment variable is not set")
 
-func GenerateToken(userID uint, role string, uuid string, email string, name string) (string, error) {
+func GenerateToken(user *models.User) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		return "", ErrMissingJWTSecret
 	}
 
 	claims := jwt.MapClaims{
-		"user_id": userID,
-		"uuid":    uuid,
-		"email":   email,
-		"name":    name,
-		"role":    role,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
-		"iat":     time.Now().Unix(),
+		"user_id":    user.ID,
+		"uuid":       user.UUID,
+		"email":      user.Email,
+		"name":       user.Name,
+		"role":       user.Role,
+		"sekolah_id": user.SekolahID,
+		"exp":        time.Now().Add(24 * time.Hour).Unix(),
+		"iat":        time.Now().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
