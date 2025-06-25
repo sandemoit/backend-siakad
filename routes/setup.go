@@ -8,7 +8,7 @@ import (
 
 func SetupRoutes(app *fiber.App) {
 	// CORS
-	// middleware.Cors(app)
+	middleware.Cors(app)
 
 	// Logger API
 	middleware.LogAPI(app)
