@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"siakad/api/models"
+	"siakad/config"
 	"siakad/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,6 +25,12 @@ func TenantMiddleware() fiber.Handler {
 		sekolahID, ok := claims["sekolah_id"]
 		if !ok {
 			return utils.ResponseError(c, fiber.StatusForbidden, "Akses ditolak: sekolah_id tidak ditemukan di token")
+		}
+
+		// Cek apakah tenant aktif
+		var tenant models.Tenant
+		if err := config.DB.Where("sekolah_id = ? AND is_active = ?", sekolahID, true).First(&tenant).Error; err != nil {
+			return utils.ResponseError(c, fiber.StatusForbidden, "Akses ditolak: Tenant tidak aktif atau tidak ditemukan")
 		}
 
 		// Simpan ke context

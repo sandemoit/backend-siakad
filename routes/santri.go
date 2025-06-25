@@ -9,5 +9,5 @@ import (
 
 func SantriRoute(api fiber.Router) {
 	// authentication routes
-	api.Get("/santri", middleware.RoleGuard("santri", "ustadz", "admin"), middleware.TenantMiddleware(), controllers.GetAllSantri)
+	api.Get("/santri", middleware.RoleGuard("ustadz", "admin"), controllers.GetAllSantri)
 }

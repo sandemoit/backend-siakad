@@ -25,8 +25,9 @@ type (
 	}
 
 	PlatResponse struct {
-		Status  int    `json:"status"`
-		Message string `json:"message"`
+		Status  int         `json:"status"`
+		Message string      `json:"message"`
+		Data    interface{} `json:"data,omitempty"`
 	}
 )
 
@@ -39,11 +40,19 @@ func ResponseError(c *fiber.Ctx, status int, message string) error {
 }
 
 // ResponseSuccess returns a standardized success response
-func ResponseSuccess(c *fiber.Ctx, status int, message string) error {
-	return c.Status(status).JSON(PlatResponse{
+func ResponseSuccess(c *fiber.Ctx, status int, message string, data ...interface{}) error {
+	resp := PlatResponse{
 		Status:  status,
 		Message: message,
-	})
+	}
+
+	// Only set Data if data is provided
+	if len(data) > 0 {
+		// If only one data argument, use it directly (not as array)
+		resp.Data = data[0]
+	}
+
+	return c.Status(status).JSON(resp)
 }
 
 // ResponseData returns a standardized data response with optional pagination

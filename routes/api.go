@@ -1,10 +1,14 @@
 package routes
 
 import (
+	"siakad/middleware"
+
 	"github.com/gofiber/fiber/v2"
 )
 
 func PublicRoute(api fiber.Router) {
 	AuthRoute(api)
-	SantriRoute(api)
+
+	protectedSantri := api.Group("", middleware.JWTProtected(), middleware.TenantMiddleware())
+	SantriRoute(protectedSantri)
 }

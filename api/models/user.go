@@ -12,11 +12,11 @@ type User struct {
 	Name      string         `gorm:"size:100;not null" json:"name"`
 	Email     string         `gorm:"unique;not null" json:"email"`
 	Password  string         `gorm:"not null" json:"-"`
+	SekolahID uint           `gorm:"not null;index" json:"sekolah_id"`
 	Role      string         `gorm:"type:varchar(32);not null" json:"role"`
-	SekolahID uint           `gorm:"null;index" json:"sekolah_id"`
 	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at,omitempty"`
 	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at,omitempty"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 
-	// Sekolah Sekolah `gorm:"foreignKey:SekolahID;constraint:OnDelete:CASCADE;" json:"sekolah"`
+	Sekolah Sekolah `gorm:"foreignKey:SekolahID" json:"sekolah,omitempty"`
 }

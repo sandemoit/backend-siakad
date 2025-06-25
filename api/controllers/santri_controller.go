@@ -9,13 +9,16 @@ import (
 )
 
 func GetAllSantri(c *fiber.Ctx) error {
-	sekolahID, ok := c.Locals("sekolah_id").(uint)
-	if !ok || sekolahID == 0 {
+	sekolahIDRaw := c.Locals("sekolah_id")
+	sekolahFloat, ok := sekolahIDRaw.(float64)
+	if !ok {
 		return utils.ResponseError(c, fiber.StatusBadRequest, "ID sekolah tidak valid")
 	}
+	sekolahID := uint(sekolahFloat)
 
 	var santri []models.Santri
 	err := config.DB.
+		Preload("Sekolah").
 		Where("sekolah_id = ?", sekolahID).
 		Find(&santri).Error
 	if err != nil {

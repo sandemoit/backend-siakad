@@ -44,3 +44,18 @@ func GenerateUID() string {
 func NowUnix() int64 {
 	return time.Now().Unix()
 }
+
+func Slugify(s string) string {
+	s = strings.ToLower(s)
+	s = strings.TrimSpace(s)
+	// Replace non-alphanumeric characters with hyphens
+	re := regexp.MustCompile(`[^a-z0-9]+`)
+	s = re.ReplaceAllString(s, "")
+	// Remove leading/trailing hyphens
+	s = strings.Trim(s, "-")
+	return s
+}
+func GenerateInvoiceNumber() string {
+	now := time.Now()
+	return fmt.Sprintf("INV-%s-%d", now.Format("20060102"), now.Unix())
+}

@@ -20,7 +20,7 @@ func JWTProtected() fiber.Handler {
 		}
 
 		if tokenStr == "" {
-			return utils.ResponseError(c, fiber.StatusUnauthorized, "Token tidak ditemukan")
+			return utils.ResponseError(c, fiber.StatusUnauthorized, "Unauthorized: Token tidak ditemukan")
 		}
 
 		token, err := utils.VerifyToken(tokenStr)
