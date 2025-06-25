@@ -12,5 +12,5 @@ func AuthRoute(api fiber.Router) {
 	api.Post("/auth/login", middleware.GuestOnly(), controllers.Login)
 	api.Post("/auth/register", middleware.GuestOnly(), controllers.Register)
 
-	api.Post("/auth/logout", controllers.Logout)
+	api.Post("/auth/logout", middleware.RoleGuard("ustadz", "admin"), middleware.JWTProtected(), controllers.Logout)
 }
