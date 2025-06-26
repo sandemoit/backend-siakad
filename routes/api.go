@@ -10,5 +10,5 @@ func PublicRoute(api fiber.Router) {
 	AuthRoute(api)
 
 	protectedSantri := api.Group("", middleware.JWTProtected(), middleware.TenantMiddleware())
-	SantriRoute(protectedSantri)
+	KesantrianRoute(protectedSantri)
 }
