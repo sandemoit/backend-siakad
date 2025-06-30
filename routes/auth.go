@@ -9,8 +9,14 @@ import (
 
 func AuthRoute(api fiber.Router) {
 	// authentication routes
-	api.Post("/auth/login", middleware.GuestOnly(), controllers.Login)
-	api.Post("/auth/register", middleware.GuestOnly(), controllers.Register)
+	auth := api.Group("/auth")
 
-	api.Post("/auth/logout", middleware.RoleGuard("ustadz", "admin"), middleware.JWTProtected(), controllers.Logout)
+	auth.Post("/login", middleware.GuestOnly(), controllers.Login)
+	auth.Post("/register", middleware.GuestOnly(), controllers.Register)
+
+	auth.Get("/verify", middleware.JWTProtected(), middleware.TenantMiddleware(), controllers.VerifyToken)
+	auth.Post("/refresh", controllers.RefreshToken)
+
+	auth.Use(middleware.JWTProtected(), middleware.TenantMiddleware(), middleware.RoleGuard("admin", "wali_kelas"))
+	auth.Post("/logout", controllers.Logout)
 }

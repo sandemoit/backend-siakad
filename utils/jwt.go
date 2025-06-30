@@ -13,7 +13,7 @@ import (
 // ErrMissingJWTSecret is returned when JWT_SECRET env variable is not set.
 var ErrMissingJWTSecret = fmt.Errorf("JWT_SECRET environment variable is not set")
 
-func GenerateToken(user *models.User) (string, error) {
+func GenerateToken(user *models.User, expired time.Duration) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		return "", ErrMissingJWTSecret
@@ -25,7 +25,7 @@ func GenerateToken(user *models.User) (string, error) {
 		"name":       user.Name,
 		"role":       user.Role,
 		"sekolah_id": user.SekolahID,
-		"exp":        time.Now().Add(24 * time.Hour).Unix(),
+		"exp":        expired,
 		"iat":        time.Now().Unix(),
 	}
 

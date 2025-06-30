@@ -6,15 +6,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetCookie(c *fiber.Ctx, name, value string, maxAge int, httpOnly bool) {
+func SetCookie(c *fiber.Ctx, name, value string, maxAge int) {
 	c.Cookie(&fiber.Cookie{
 		Name:     name,
 		Value:    value,
 		MaxAge:   maxAge,
-		HTTPOnly: httpOnly, // Prevents JavaScript access
-		Secure:   false,    // Set to true if using HTTPS
-		SameSite: "Lax",    // Adjust based on your needs
-		Path:     "/",      // Cookie path
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: fiber.CookieSameSiteNoneMode,
 	})
 }
 
@@ -26,7 +25,7 @@ func RevokeCookie(c *fiber.Ctx, name string) {
 		MaxAge:   -1,
 		HTTPOnly: true,
 		Path:     "/",
-		Secure:   false, // Set to true if using HTTPS
-		SameSite: "Lax", // Adjust based on your needs
+		Secure:   true,
+		SameSite: fiber.CookieSameSiteNoneMode,
 	})
 }

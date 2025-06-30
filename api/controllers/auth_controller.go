@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"os"
 	"siakad/api/dto"
 	"siakad/api/models"
 	"siakad/api/service"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func Login(c *fiber.Ctx) error {
@@ -23,22 +25,18 @@ func Login(c *fiber.Ctx) error {
 		return utils.ResponseError(c, fiber.StatusUnauthorized, "Kredensial tidak valid")
 	}
 
-	token, err := utils.GenerateToken(user)
+	accessToken, err := utils.GenerateToken(user, 1*24*time.Hour)
 	if err != nil {
-		return utils.ResponseError(c, fiber.StatusInternalServerError, "Gagal menghasilkan Token")
+		utils.LogError(err)
 	}
 
-	utils.SetCookie(c, "token", token, 24*60*60, true)
+	refreshToken, err := utils.GenerateToken(user, 7*24*time.Hour)
+	if err != nil {
+		utils.LogError(err)
+	}
 
-	// return c.JSON(fiber.Map{
-	// 	"message": "Login Berhasil",
-	// 	"user": fiber.Map{
-	// 		"id":    user.ID,
-	// 		"name":  user.Name,
-	// 		"email": user.Email,
-	// 		"role":  user.Role,
-	// 	},
-	// })
+	utils.SetCookie(c, "access_token", accessToken, 24*60*60)
+	utils.SetCookie(c, "refresh_token", refreshToken, 24*60*60)
 
 	return utils.ResponseSuccess(c, fiber.StatusOK, "Login Berhasil")
 }
@@ -149,7 +147,94 @@ func Register(c *fiber.Ctx) error {
 
 func Logout(c *fiber.Ctx) error {
 	// Hapus token dari cookie
-	utils.RevokeCookie(c, "token")
+	utils.RevokeCookie(c, "access_token")
+	utils.RevokeCookie(c, "refresh_token")
 
 	return utils.ResponseSuccess(c, fiber.StatusOK, "Logout Berhasil")
+}
+
+func VerifyToken(c *fiber.Ctx) error {
+	// Ambil token dari cookie atau header Authorization
+	var tokenString string
+
+	// Cek dari cookie terlebih dahulu
+	tokenString = c.Cookies("access_token")
+	if tokenString == "" {
+		// Jika tidak ada di cookie, cek di header Authorization
+		authHeader := c.Get("Authorization")
+		if authHeader != "" {
+			tokenString = authHeader
+		}
+	}
+
+	// Jika token masih kosong
+	if tokenString == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized: Token tidak ditemukan",
+		})
+	}
+
+	// Parse dan verifikasi token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Validasi algoritma
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fiber.NewError(fiber.StatusUnauthorized, "Algoritma signing tidak valid")
+		}
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized: Token tidak valid",
+			"error":   err.Error(),
+		})
+	}
+
+	// Cek apakah token valid
+	if !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized: Token tidak valid",
+		})
+	}
+
+	// Jika semua validasi berhasil
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Token valid",
+		"user":    token.Claims.(jwt.MapClaims)["sub"], // Ambil data user dari claims
+	})
+}
+
+func RefreshToken(c *fiber.Ctx) error {
+	refreshToken := c.Cookies("refresh_token")
+	if refreshToken == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Refresh token tidak ditemukan",
+		})
+	}
+
+	token, err := utils.VerifyToken(refreshToken)
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Refresh token tidak valid",
+		})
+	}
+
+	userID, role, err := utils.GetUserFromToken(refreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Gagal membaca token",
+		})
+	}
+
+	// Bisa validasi user di DB juga jika perlu
+	accessToken, _ := utils.GenerateToken(&models.User{
+		ID:   userID,
+		Role: role,
+	}, 15*time.Minute)
+
+	utils.SetCookie(c, "access_token", accessToken, 15*60)
+
+	return c.JSON(fiber.Map{
+		"message": "Token baru berhasil dibuat",
+	})
 }

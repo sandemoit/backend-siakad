@@ -11,7 +11,7 @@ import (
 
 func JWTProtected() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tokenStr := c.Cookies("token")
+		tokenStr := c.Cookies("access_token")
 		if tokenStr == "" {
 			authHeader := c.Get("Authorization")
 			if authHeader != "" {
@@ -44,7 +44,7 @@ func JWTProtected() fiber.Handler {
 
 func GuestOnly() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tokenStr := c.Cookies("token")
+		tokenStr := c.Cookies("access_token")
 		if tokenStr == "" {
 			return c.Next()
 		}
