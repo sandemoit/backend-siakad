@@ -1,0 +1,143 @@
+basePath: /api/v1
+definitions:
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.RegisterSekolahRequest:
+    properties:
+      alamat:
+        type: string
+      email_admin:
+        type: string
+      email_sekolah:
+        type: string
+      jabatan_admin:
+        type: string
+      kabupaten:
+        type: string
+      kecamatan:
+        type: string
+      logo:
+        type: string
+      nama_admin:
+        type: string
+      nama_sekolah:
+        type: string
+      no_wa_admin:
+        type: string
+      npsn:
+        type: string
+      provinsi:
+        type: string
+      telepon:
+        type: string
+    type: object
+  utils.BaseResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      limit:
+        type: integer
+      message:
+        type: string
+      page:
+        type: integer
+      status:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  utils.PlatResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: API Kebutuhan untuk SIAKAD PONPES
+  title: API SIAKAD PONPES
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      parameters:
+      - description: Login Request
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.PlatResponse'
+      summary: Login
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.PlatResponse'
+      summary: Logout
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register
+      parameters:
+      - description: Register Request
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterSekolahRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.PlatResponse'
+      summary: Register
+      tags:
+      - Auth
+swagger: "2.0"

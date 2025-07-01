@@ -14,6 +14,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// @Summary Login
+// @Description Login
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param data body dto.LoginRequest true "Login Request"
+// @Success 200 {object} utils.BaseResponse
+// @Failure 400 {object} utils.PlatResponse
+// @Router /auth/login [post]
 func Login(c *fiber.Ctx) error {
 	var req dto.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -38,9 +47,23 @@ func Login(c *fiber.Ctx) error {
 	utils.SetCookie(c, "access_token", accessToken, 24*60*60)
 	utils.SetCookie(c, "refresh_token", refreshToken, 24*60*60)
 
-	return utils.ResponseSuccess(c, fiber.StatusOK, "Login Berhasil")
+	return c.JSON(fiber.Map{
+		"status":  fiber.StatusOK,
+		"message": "Login berhasil",
+		"user":    user,
+		"token":   accessToken,
+	})
 }
 
+// @Summary Register
+// @Description Register
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param data body dto.RegisterSekolahRequest true "Register Request"
+// @Success 200 {object} utils.BaseResponse
+// @Failure 400 {object} utils.PlatResponse
+// @Router /auth/register [post]
 func Register(c *fiber.Ctx) error {
 	var req dto.RegisterSekolahRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -145,6 +168,14 @@ func Register(c *fiber.Ctx) error {
 	return utils.ResponseSuccess(c, fiber.StatusCreated, "Berhasil membuat akun sekolah", data)
 }
 
+// @Summary Logout
+// @Description Logout
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} utils.BaseResponse
+// @Failure 400 {object} utils.PlatResponse
+// @Router /auth/logout [post]
 func Logout(c *fiber.Ctx) error {
 	// Hapus token dari cookie
 	utils.RevokeCookie(c, "access_token")
