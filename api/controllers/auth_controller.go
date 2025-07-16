@@ -38,7 +38,13 @@ func Login(c *fiber.Ctx) error {
 	utils.SetCookie(c, "access_token", accessToken, 24*60*60)
 	utils.SetCookie(c, "refresh_token", refreshToken, 24*60*60)
 
-	return utils.ResponseSuccess(c, fiber.StatusOK, "Login Berhasil")
+	// return utils.ResponseSuccess(c, fiber.StatusOK, "Login Berhasil")
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Login Berhasil",
+		"user":    user,
+		"token":   accessToken,
+	})
 }
 
 func Register(c *fiber.Ctx) error {
@@ -146,9 +152,15 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Logout(c *fiber.Ctx) error {
+	defer func() {
+		if r := recover(); r != nil {
+			utils.ResponseError(c, fiber.StatusInternalServerError, "Terjadi kesalahan saat logout")
+		}
+	}()
+
 	// Hapus token dari cookie
-	utils.RevokeCookie(c, "access_token")
-	utils.RevokeCookie(c, "refresh_token")
+	utils.ClearCookie(c, "access_token")
+	utils.ClearCookie(c, "refresh_token")
 
 	return utils.ResponseSuccess(c, fiber.StatusOK, "Logout Berhasil")
 }

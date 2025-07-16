@@ -17,15 +17,13 @@ func SetCookie(c *fiber.Ctx, name, value string, maxAge int) {
 	})
 }
 
-func RevokeCookie(c *fiber.Ctx, name string) {
+func ClearCookie(c *fiber.Ctx, name string) {
 	c.Cookie(&fiber.Cookie{
 		Name:     name,
 		Value:    "",
-		Expires:  time.Unix(0, 0),
+		Expires:  time.Now().Add(-1 * time.Hour),
 		MaxAge:   -1,
-		HTTPOnly: true,
 		Path:     "/",
-		Secure:   true,
-		SameSite: fiber.CookieSameSiteNoneMode,
+		HTTPOnly: true,
 	})
 }
