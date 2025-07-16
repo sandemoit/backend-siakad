@@ -4,6 +4,7 @@ import (
 	"siakad/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
 func SetupRoutes(app *fiber.App) {
@@ -17,6 +18,8 @@ func SetupRoutes(app *fiber.App) {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusForbidden).SendString("Access Denied")
 	})
+
+	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
 	api := app.Group("/api/v1")
 	// api.Use(middleware.CheckSession)

@@ -6,7 +6,6 @@ import (
 	"siakad/api/models"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -67,34 +66,6 @@ func GetUserFromToken(tokenString string) (uint, string, error) {
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return 0, "", fmt.Errorf("invalid claims")
-	}
-
-	// Extract user_id
-	userIDFloat, ok := claims["user_id"].(float64)
-	if !ok {
-		return 0, "", fmt.Errorf("invalid user_id")
-	}
-	userID := uint(userIDFloat)
-
-	// Extract role
-	role, ok := claims["role"].(string)
-	if !ok {
-		return 0, "", fmt.Errorf("invalid role")
-	}
-
-	return userID, role, nil
-}
-
-// Helper function to get user info from Fiber context
-func GetUserFromContext(c *fiber.Ctx) (uint, string, error) {
-	userToken, ok := c.Locals("user").(*jwt.Token)
-	if !ok || userToken == nil {
-		return 0, "", fmt.Errorf("user token not found in context")
-	}
-
-	claims, ok := userToken.Claims.(jwt.MapClaims)
 	if !ok {
 		return 0, "", fmt.Errorf("invalid claims")
 	}

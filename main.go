@@ -1,3 +1,8 @@
+// @title           API SIAKAD PONPES
+// @version         1.0
+// @description     API Kebutuhan untuk SIAKAD PONPES
+// @host            localhost:3000
+// @BasePath        /api/v1
 package main
 
 import (
