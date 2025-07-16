@@ -47,16 +47,10 @@ func Login(c *fiber.Ctx) error {
 	utils.SetCookie(c, "access_token", accessToken, 24*60*60)
 	utils.SetCookie(c, "refresh_token", refreshToken, 24*60*60)
 
-<<<<<<< HEAD
 	// return utils.ResponseSuccess(c, fiber.StatusOK, "Login Berhasil")
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Login Berhasil",
-=======
-	return c.JSON(fiber.Map{
-		"status":  fiber.StatusOK,
-		"message": "Login berhasil",
->>>>>>> 9dee83dae237f199113434aa3beb9411b69aefb0
 		"user":    user,
 		"token":   accessToken,
 	})
